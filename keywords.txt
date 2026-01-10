@@ -1,0 +1,69 @@
+#######################################
+# Syntax Coloring Map For roboag5
+####################################### 
+# Class
+#######################################
+
+RED	LITERAL1
+GREEN	LITERAL1
+BLUE	LITERAL1
+YELLOW	LITERAL1
+BLACK	LITERAL1
+WHITE	LITERAL1
+pixyR	LITERAL1
+pixyG	LITERAL1
+pixyB	LITERAL1
+
+#######################################
+# Methods and Functions 
+#######################################	
+serialPrint	KEYWORD2
+serialNewLine	KEYWORD2
+repeat	KEYWORD2
+repeatMillis	KEYWORD2
+readTemp	KEYWORD2
+drive	KEYWORD2
+driveFwd	KEYWORD2
+driveRev	KEYWORD2
+driveLeft	KEYWORD2
+driveRight	KEYWORD2
+driveOff	KEYWORD2
+
+print	KEYWORD2
+printNewLine	KEYWORD2
+log	KEYWORD2
+
+isNear	KEYWORD2
+addUsSensor	KEYWORD2
+isDark	KEYWORD2
+addLightSensor	KEYWORD2
+readSensor	KEYWORD2
+readA	KEYWORD2
+readUs	KEYWORD2
+readIr30	KEYWORD2
+readButton	KEYWORD2
+readLight	KEYWORD2
+readGreen	KEYWORD2
+readRed	KEYWORD2
+
+groRechts	KEYWORD2
+gyroLinks	KEYWORD2
+gyroTurn	KEYWORD2
+
+writeServo	KEYWORD2
+writePort	KEYWORD2
+writeHigh	KEYWORD2
+writeLow	KEYWORD2
+writeLeds	KEYWORD2
+writeLed	KEYWORD2
+
+lcdPrint	KEYWORD2
+lcdSetCursor	KEYWORD2
+lcdSetColor	KEYWORD2
+lcdClear	KEYWORD2
+
+pixyLamp	KEYWORD2
+pixyRead	KEYWORD2
+pixyReadGreen	KEYWORD2
+pixyReadColor	KEYWORD2
+pixyBegin	KEYWORD2

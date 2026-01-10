@@ -1,0 +1,499 @@
+#include <Arduino.h>
+#include <EEPROM.h>
+#include <Adafruit_NeoPixel.h>
+
+Adafruit_NeoPixel pixels;
+boolean _neopixelStarted = false;
+
+void writeLeds(int pin, int l1, int l2, int l3)
+{
+	if( _neopixelStarted == false )
+	{
+		pixels = Adafruit_NeoPixel(1, pin);
+		pixels.begin();
+		_neopixelStarted = true;
+	}
+	int red = 0;
+	int blue = 0;
+	int green = 0;
+	if( (l1 & 1)>0 ){  red = 255; }else{ red = 0;}
+	if( (l1 & 2)>0 ){green = 255; }else{ green = 0;}
+	if( (l1 & 4)>0 ){ blue = 80; }else{ blue = 0;}
+	if(l1 >= 0) pixels.setPixelColor(0, pixels.Color(red, green, blue));
+	if( (l2 & 1)>0 ){  red = 80; }else{ red = 0;}
+	if( (l2 & 2)>0 ){green = 80; }else{ green = 0;}
+	if( (l2 & 4)>0 ){ blue = 80; }else{ blue = 0;}
+	if(l2 >= 0) pixels.setPixelColor(1, pixels.Color(red, green, blue));
+	if( (l3 & 1)>0 ){  red = 80; }else{ red = 0;}
+	if( (l3 & 2)>0 ){green = 80; }else{ green = 0;}
+	if( (l3 & 4)>0 ){ blue = 80; }else{ blue = 0;}
+	if(l3 >= 0) pixels.setPixelColor(2, pixels.Color(red, green, blue));
+
+	pixels.show(); // This sends the updated pixel color to the hardware.
+}
+
+
+/* ************************************************
+// Serial
+*/
+boolean _serialIsConnected = false;
+
+void _connectIfNeeded(){
+  if( _serialIsConnected == false )
+  {
+    Serial.begin(57600);
+    _serialIsConnected = true;
+  }
+}
+
+void print(char c[]){
+   _connectIfNeeded();
+  Serial.write(c);
+}
+
+void print(int n){
+  _connectIfNeeded();
+  Serial.print(n);
+}
+
+void printLine(char c[]){
+  _connectIfNeeded();
+  Serial.println(c);
+}
+
+void printLine(String str){
+  _connectIfNeeded();
+  Serial.println(str);
+}
+
+void printLine(int n){
+  _connectIfNeeded();
+  Serial.println(n);
+}
+
+void printLine(){
+  _connectIfNeeded();
+  Serial.println();
+}
+
+
+/* ************************************************
+ // Servo
+ */
+#include <Servo.h> 
+Servo myservo[4];
+int servoPin[]={
+  -1,-1,-1,-1, -1, -1};
+
+
+
+void writeServo(int pin, int pos){
+  // welcher Servo haengt an dem Pin?
+  for(int n=0; n<4; n++){
+    if(servoPin[n] == pin){
+      myservo[n].write(pos);
+      return;
+    }     
+  }
+  // er hat also keinen Servo gefunden
+  // mal nach einem freien Slot suchen
+  for(int n=0; n<4; n++){
+    if(servoPin[n]<0){
+      // freier Slot gefunden
+      servoPin[n]=pin;
+      myservo[n].attach(pin);
+      myservo[n].write(pos);
+      return;
+    } 
+  }
+}
+
+
+/* ////////////////////////////////////////////
+ // Motoren
+ */
+//schaltet den Motor aus. Die Raeder "blockieren"
+void Off(int m)  {
+  // PINS als Ausgaenge setzen
+  DDRD |= B11110000;
+  DDRB |= B00000011;
+
+  //Motor A
+  if (m == 1  ||  m == 3) {
+    digitalWrite(4, HIGH);
+    digitalWrite(9, HIGH);
+    analogWrite(5, 0);
+  }
+
+  //Motor B
+  if (m==2 || m==3) {
+    digitalWrite(7, HIGH);
+    digitalWrite(8, HIGH);
+    analogWrite(6, 0);
+  }
+}
+ 
+void OnRev(int m, int v)
+{
+  // PINS als Ausgaenge setzen
+  DDRD |= B11110000;
+  DDRB |= B00000011;
+ 
+  int dir = 1;
+  if( v < 0){
+	  dir = -1;
+	  v = -v;
+  }
+  
+  // den Wert auf "100" deckeln
+  if(v > 100) {
+    v = 100;
+  }
+
+  v = map(v, 0, 100, 0, 255);
+
+  // Motor A
+  if(dir == 1)
+  {
+	  if(m==1 || m==3){   // Motor A
+		digitalWrite(4, HIGH);
+		digitalWrite(9, LOW);    
+		analogWrite(5, v);
+	  }
+	  if(m==2 || m==3){   // Motor B
+		digitalWrite(7, HIGH);
+		digitalWrite(8, LOW);    
+		analogWrite(6, v);
+	  }
+  }
+  else
+  {
+    if(m==1 || m==3){	// Motor A
+      digitalWrite(4, LOW); //vrA1
+      digitalWrite(9, HIGH);//vrA2    
+      analogWrite(5, v); //enA
+    }
+    if(m==2 || m==3){	// Motor B
+      digitalWrite(7, LOW);//vrB1
+      digitalWrite(8, HIGH);//vrB2    
+      analogWrite(6, v);
+    }    
+  }
+    
+}
+ 
+void OnFwd(int m, int v){
+  // bei negativen Werten "OnRev" aufrufen
+  if(v < 0) {
+    OnRev(m, -v);
+    return;
+  }
+
+  // PINS als Ausgaenge setzen
+  DDRD |= B11110000;
+  DDRB |= B00000011;
+
+  // den Wert auf "100" deckeln
+  if(v > 100) {
+    v = 100;
+  }
+  v = map(v, 0, 100, 0, 255);
+
+  // Motor A
+  if(m==1 || m==3){
+    digitalWrite(4, LOW); //vrA1
+    digitalWrite(9, HIGH);//vrA2    
+    analogWrite(5, v); //enA
+  }
+
+  // Motor B
+  if(m==2 || m==3){
+    digitalWrite(7, LOW);//vrB1
+    digitalWrite(8, HIGH);//vrB2    
+    analogWrite(6, v);
+  }    
+}
+
+ 
+ 
+void driveFwd() {
+  OnFwd(3, 100);
+}
+
+void driveRev() {
+  OnRev(3, 100);
+}
+
+void driveLeft(){
+  OnFwd(1, 100);
+  OnRev(2, 100);
+}
+
+void driveRight(){
+  OnFwd(2, 100);
+  OnRev(1, 100);
+}
+
+void driveOff(){
+  Off(3);
+}
+
+void drive(int left, int right){
+  if(left == 0){
+    Off(2);
+  }
+  else{
+    OnFwd(2, left);	
+  }
+
+  if(right == 0){
+    Off(1);
+  }
+  else{
+    OnFwd(1, right);
+  }
+}
+
+
+
+// #######################################################################################
+// #
+// # read
+// #
+// #######################################################################################
+
+
+/* *************************************************************
+ // Ultraschallsensor
+ // der US-Sensor darf nicht so oft ausgelesen werden
+ // Deswegen merkt sich die Software den Zeitpunkt der letzten Messung
+ // wenn die neue Messung MILLISMINDIFF ms und kuerzer zurueckliegt,
+ // so wird nicht erneut gemessen sondern der alte Wert zurueckgegeben.
+ */
+const int MILLISMINDIFF = 30;
+
+int _pin[] = {  // der US-Sensor liegt auf dem Pin
+  -1, -1, -1, -1, -1, -1};
+
+unsigned long _lastMillis[] = {
+  0ul, 0ul, 0ul, 0ul, 0ul, 0ul};
+
+int _oldUsVal[] = {
+  9999, 9999, 9999, 9999, 9999, 9999};
+
+
+// jetzt di Funktion
+int readUs(int pin){
+  
+  // schaue nach, ob der pin schon mal benutzt wurde
+  int pin_number = -1;
+  for(int n = 0; n < 6; n++){
+    if( pin == _pin[n] ){
+      pin_number = n;
+      break;
+    } 
+  }
+
+  // falls der pin noch  nicht benutzt wurde, so 
+  // muss er in die Liste eingetragen werden
+  if(pin_number == -1){
+    // suche nach dem 1. freien Slot
+    for(int n = 0; n < 6; n++){
+      if(_pin[n] == -1){
+        _pin[n] = pin;
+        pin_number = n;
+        break;
+      }
+    }
+  }
+
+  // wie lange ist die letzte Messung her?
+  int millisAgo = millis() - _lastMillis[pin_number];
+
+  // wurde erst vor kurzem gemessen, so soll einfach
+  // der alte Wert zurueckgegeben werden
+  if(millisAgo < MILLISMINDIFF){
+    return _oldUsVal[pin_number];
+  }
+
+  // die letzte Messung liegt also schon ein bisschen zurueck
+  // wir muessen neu messen
+  long duration;
+  int mm;
+
+  // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
+  // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(15);
+  digitalWrite(pin, LOW);
+  delayMicroseconds(20);
+  // The same pin is used to read the signal from the PING))): a HIGH
+  // pulse whose duration is the time (in microseconds) from the sending
+  // of the ping to the reception of its echo off of an object.
+  pinMode(pin, INPUT);
+  duration = pulseIn(pin, HIGH, 20000ul);
+  mm = duration / 6; //microsecondsToCentimeters(duration);
+  if(mm <= 0) mm = 9999;
+  // merke dir den Wert ...
+  _oldUsVal[pin_number] = mm;
+  // ... und die Zeit, zu der gemessen wurde
+  _lastMillis[pin_number] = millis();
+  return mm;
+}
+
+
+boolean readButton(int pin){
+  pinMode(pin, INPUT);
+  digitalWrite(pin, HIGH);
+  return digitalRead(pin); 
+}
+
+
+int readIr30(int analogPin){
+  int result;
+  int val = analogRead(analogPin);
+  if (val < 3){
+    result = 999; // invalid value
+  }
+  else{
+    // v = 24570.0/analogRead(0)+6.0;
+    float ret = (24570.0 /((float)val))+6.0;// - 3.0)) - 4.0;
+    if(ret > 300){
+      result = 999;
+    }
+    else if(ret < 30)
+    {
+      result = 0;
+    }
+    else
+    {
+      result = ret;
+    }
+  }
+  //log(String(analogPin) + ";" + String(result) + "i");
+  return result;
+} 
+
+
+int readLight(int analogPin){
+  int result = analogRead(analogPin);
+  //log(String(analogPin) + ";" + String(result) + "a");
+  return result;
+}
+
+// ######################################
+// Gruensensor
+
+int _green_greenVals[] = {-1,-1,-1,-1,-1,-1,-1,-1};
+int _green_redVals[] = {-1,-1,-1,-1,-1,-1,-1,-1};
+
+//This function will write a 2 byte integer to the eeprom at the specified address and address + 1
+void EEPROMWriteInt(int p_address, int p_value)
+{
+  byte lowByte = ((p_value >> 0) & 0xFF);
+  byte highByte = ((p_value >> 8) & 0xFF);
+
+  EEPROM.write(p_address, lowByte);
+  EEPROM.write(p_address + 1, highByte);
+}
+
+//This function will read a 2 byte integer from the eeprom at the specified address and address + 1
+int EEPROMReadInt(int p_address)
+{
+  byte lowByte = EEPROM.read(p_address);
+  byte highByte = EEPROM.read(p_address + 1);
+
+  return ((lowByte << 0) & 0xFF) + ((highByte << 8) & 0xFF00);
+}
+
+
+int readGreen(int analogPin, int digitalPin)
+{
+  // muessen die Werte noch gelesen werden?
+  int slot = analogPin - 14;
+  if(_green_greenVals[slot] == -1)
+  {
+    _green_redVals[slot] = EEPROMReadInt(slot*4);
+    _green_greenVals[slot] = EEPROMReadInt(slot*4 + 2);
+  }
+  
+  // put your main code here, to run repeatedly:
+  pinMode(digitalPin, OUTPUT);
+  digitalWrite(digitalPin, HIGH);
+  delayMicroseconds(10);
+  int _green = (int)((float)analogRead(analogPin) / (float)_green_redVals[slot] * 1000.0); //
+  digitalWrite(digitalPin, LOW);
+  delayMicroseconds(100);
+  int _red = (int)((float)analogRead(analogPin) / (float)_green_greenVals[slot] * 1000.0); //
+  pinMode(digitalPin, INPUT);
+  return _green - _red;
+}
+
+int calibrateGreen(int analogPin, int digitalPin)
+{
+  print("Sensor am AnalogPort A");
+  printLine(analogPin - 14);
+  print("Steuerung der Farbe ueber digitalPin ");
+  printLine(digitalPin);  
+  printLine("Lass den Gruensensor auf die helle Flaeche leuchten");
+  printLine("Gib einen beliebigen Buchstaben ein und druecke [Senden]");
+  while (!Serial.available())
+  {
+    delay(100);
+  }
+  while (Serial.available())
+  {
+    Serial.read();
+  }
+  // Werte messen
+  pinMode(digitalPin, OUTPUT);
+  digitalWrite(digitalPin, HIGH);
+  delay(1);
+  int _red = (int)((float)analogRead(analogPin)*0.92);
+  print("Rotwert=");
+  print(_red);
+  printLine(" ist gespeichert");
+  delay(500);
+  
+  digitalWrite(digitalPin, LOW);
+  delay(1);
+  int _green = analogRead(analogPin);
+  print("Gruenwert=");
+  print(_green);
+  printLine(" ist gespeichert");
+  
+  delay(500);
+  pinMode(digitalPin, INPUT);  
+  // werte speichern
+  int slot = analogPin - 14;
+  // der Wert sollte zwischen 0 und 7 sein
+  EEPROMWriteInt(slot * 4, _red);
+  EEPROMWriteInt(slot * 4 + 2, _green);
+
+  while(1==1)
+  {
+    delay(100);
+    printLine(readGreen(analogPin, digitalPin));
+  }
+}
+
+
+
+void writePort(int port, int val){
+  pinMode(port, OUTPUT);
+  digitalWrite(port, val);
+}
+
+void writeHigh(int port){
+  pinMode(port, OUTPUT);
+  digitalWrite(port, HIGH);
+}
+
+void writeLow(int port){
+  pinMode(port, OUTPUT);
+  digitalWrite(port, LOW);
+}
+

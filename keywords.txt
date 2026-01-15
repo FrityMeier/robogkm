@@ -13,6 +13,8 @@ WHITE	LITERAL1
 pixyR	LITERAL1
 pixyG	LITERAL1
 pixyB	LITERAL1
+hallo	LITERAL1
+
 
 #######################################
 # Methods and Functions 

@@ -1,0 +1,102 @@
+{
+  "title": "Lichtsensor",
+  "description": "Lichtsensor an A0. Roboter stoppt bei Dunkelheit, faehrt bei Helligkeit.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "ls_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "SETUP": {
+              "block": {
+                "type": "robo_add_light_sensor",
+                "id": "ls_add",
+                "fields": {
+                  "NAME": "v",
+                  "PIN": "A0",
+                  "THRESHOLD": 100
+                }
+              }
+            },
+            "LOOP": {
+              "block": {
+                "type": "controls_if",
+                "id": "ls_if",
+                "extraState": {
+                  "hasElse": true
+                },
+                "inputs": {
+                  "IF0": {
+                    "block": {
+                      "type": "robo_is_dark",
+                      "id": "ls_dk",
+                      "fields": {
+                        "NAME": "v"
+                      }
+                    }
+                  },
+                  "DO0": {
+                    "block": {
+                      "type": "robo_drive",
+                      "id": "ls_stop",
+                      "inputs": {
+                        "LEFT": {
+                          "block": {
+                            "type": "math_number",
+                            "id": "ls_sl",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        },
+                        "RIGHT": {
+                          "block": {
+                            "type": "math_number",
+                            "id": "ls_sr",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "ELSE": {
+                    "block": {
+                      "type": "robo_drive",
+                      "id": "ls_go",
+                      "inputs": {
+                        "LEFT": {
+                          "block": {
+                            "type": "math_number",
+                            "id": "ls_gl",
+                            "fields": {
+                              "NUM": 100
+                            }
+                          }
+                        },
+                        "RIGHT": {
+                          "block": {
+                            "type": "math_number",
+                            "id": "ls_gr",
+                            "fields": {
+                              "NUM": 100
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

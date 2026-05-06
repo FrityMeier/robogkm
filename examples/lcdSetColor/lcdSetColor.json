@@ -1,0 +1,151 @@
+{
+  "title": "LCD-Farbe",
+  "description": "LCD-Hintergrundfarbe wechseln.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "lc_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "SETUP": {
+              "block": {
+                "type": "robo_lcd_print",
+                "id": "lc_sp",
+                "inputs": {
+                  "VALUE": {
+                    "block": {
+                      "type": "text",
+                      "id": "lc_st",
+                      "fields": {
+                        "TEXT": "Farbwechsel"
+                      }
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "arduino_delay",
+                    "id": "lc_sd",
+                    "inputs": {
+                      "DELAY_TIME": {
+                        "block": {
+                          "type": "math_number",
+                          "id": "lc_sdn",
+                          "fields": {
+                            "NUM": 1000
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "LOOP": {
+              "block": {
+                "type": "robo_lcd_clear",
+                "id": "lc_cl1",
+                "next": {
+                  "block": {
+                    "type": "robo_lcd_print",
+                    "id": "lc_pg",
+                    "inputs": {
+                      "VALUE": {
+                        "block": {
+                          "type": "text",
+                          "id": "lc_gt",
+                          "fields": {
+                            "TEXT": "gruen"
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "robo_lcd_color",
+                        "id": "lc_cg",
+                        "fields": {
+                          "COLOR": "GREEN"
+                        },
+                        "next": {
+                          "block": {
+                            "type": "arduino_delay",
+                            "id": "lc_gd",
+                            "inputs": {
+                              "DELAY_TIME": {
+                                "block": {
+                                  "type": "math_number",
+                                  "id": "lc_gdn",
+                                  "fields": {
+                                    "NUM": 1000
+                                  }
+                                }
+                              }
+                            },
+                            "next": {
+                              "block": {
+                                "type": "robo_lcd_clear",
+                                "id": "lc_cl2",
+                                "next": {
+                                  "block": {
+                                    "type": "robo_lcd_print",
+                                    "id": "lc_pr",
+                                    "inputs": {
+                                      "VALUE": {
+                                        "block": {
+                                          "type": "text",
+                                          "id": "lc_rt",
+                                          "fields": {
+                                            "TEXT": "rot"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "next": {
+                                      "block": {
+                                        "type": "robo_lcd_color",
+                                        "id": "lc_cr",
+                                        "fields": {
+                                          "COLOR": "RED"
+                                        },
+                                        "next": {
+                                          "block": {
+                                            "type": "arduino_delay",
+                                            "id": "lc_rd",
+                                            "inputs": {
+                                              "DELAY_TIME": {
+                                                "block": {
+                                                  "type": "math_number",
+                                                  "id": "lc_rdn",
+                                                  "fields": {
+                                                    "NUM": 1000
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

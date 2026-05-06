@@ -1,0 +1,113 @@
+{
+  "title": "LCD-Display",
+  "description": "LCD-Display (gelb A5/SCL, weiss A4/SDA). Gibt Messwert von A0 aus.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "lp_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "SETUP": {
+              "block": {
+                "type": "robo_lcd_cursor",
+                "id": "lp_sc",
+                "fields": {
+                  "ROW": 0,
+                  "COL": 0
+                },
+                "next": {
+                  "block": {
+                    "type": "robo_lcd_print",
+                    "id": "lp_ph",
+                    "inputs": {
+                      "VALUE": {
+                        "block": {
+                          "type": "text",
+                          "id": "lp_ht",
+                          "fields": {
+                            "TEXT": "Hello"
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "arduino_delay",
+                        "id": "lp_st",
+                        "inputs": {
+                          "DELAY_TIME": {
+                            "block": {
+                              "type": "math_number",
+                              "id": "lp_stn",
+                              "fields": {
+                                "NUM": 1000
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "LOOP": {
+              "block": {
+                "type": "robo_lcd_clear",
+                "id": "lp_cl",
+                "next": {
+                  "block": {
+                    "type": "robo_lcd_cursor",
+                    "id": "lp_lc",
+                    "fields": {
+                      "ROW": 1,
+                      "COL": 0
+                    },
+                    "next": {
+                      "block": {
+                        "type": "robo_lcd_print",
+                        "id": "lp_la",
+                        "inputs": {
+                          "VALUE": {
+                            "block": {
+                              "type": "arduino_analog_read",
+                              "id": "lp_ar",
+                              "fields": {
+                                "PIN": "A0"
+                              }
+                            }
+                          }
+                        },
+                        "next": {
+                          "block": {
+                            "type": "arduino_delay",
+                            "id": "lp_lt",
+                            "inputs": {
+                              "DELAY_TIME": {
+                                "block": {
+                                  "type": "math_number",
+                                  "id": "lp_ltn",
+                                  "fields": {
+                                    "NUM": 1000
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

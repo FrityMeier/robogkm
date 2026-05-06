@@ -1,0 +1,85 @@
+{
+  "title": "Ultraschallsensor",
+  "description": "Ultraschallsensor an Pin 12. LED an wenn Hindernis naeher als 100mm.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "us_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "SETUP": {
+              "block": {
+                "type": "robo_add_us_sensor",
+                "id": "us_add",
+                "fields": {
+                  "NAME": "v",
+                  "PIN": "12",
+                  "THRESHOLD": 100
+                }
+              }
+            },
+            "LOOP": {
+              "block": {
+                "type": "controls_if",
+                "id": "us_if",
+                "extraState": {
+                  "hasElse": true
+                },
+                "inputs": {
+                  "IF0": {
+                    "block": {
+                      "type": "robo_is_near",
+                      "id": "us_nr",
+                      "fields": {
+                        "NAME": "v"
+                      }
+                    }
+                  },
+                  "DO0": {
+                    "block": {
+                      "type": "robo_write_high",
+                      "id": "us_wh",
+                      "fields": {
+                        "PIN": "13"
+                      }
+                    }
+                  },
+                  "ELSE": {
+                    "block": {
+                      "type": "robo_write_low",
+                      "id": "us_wl",
+                      "fields": {
+                        "PIN": "13"
+                      }
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "arduino_delay",
+                    "id": "us_t",
+                    "inputs": {
+                      "DELAY_TIME": {
+                        "block": {
+                          "type": "math_number",
+                          "id": "us_tn",
+                          "fields": {
+                            "NUM": 10
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

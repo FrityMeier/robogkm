@@ -1,0 +1,73 @@
+{
+  "title": "Servo",
+  "description": "Servo an Pin 10 (schwarzes Kabel nach aussen). Faehrt zwischen 60 und 120 Grad.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "ws_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "LOOP": {
+              "block": {
+                "type": "robo_write_servo",
+                "id": "ws_1",
+                "fields": {
+                  "PIN": "10",
+                  "ANGLE": 60
+                },
+                "next": {
+                  "block": {
+                    "type": "arduino_delay",
+                    "id": "ws_1t",
+                    "inputs": {
+                      "DELAY_TIME": {
+                        "block": {
+                          "type": "math_number",
+                          "id": "ws_1tn",
+                          "fields": {
+                            "NUM": 1000
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "robo_write_servo",
+                        "id": "ws_2",
+                        "fields": {
+                          "PIN": "10",
+                          "ANGLE": 120
+                        },
+                        "next": {
+                          "block": {
+                            "type": "arduino_delay",
+                            "id": "ws_2t",
+                            "inputs": {
+                              "DELAY_TIME": {
+                                "block": {
+                                  "type": "math_number",
+                                  "id": "ws_2tn",
+                                  "fields": {
+                                    "NUM": 1000
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

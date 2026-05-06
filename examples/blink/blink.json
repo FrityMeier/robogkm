@@ -1,0 +1,71 @@
+{
+  "title": "LED blinken",
+  "description": "Laesst die eingebaute LED an Pin 13 blinken",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "b_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "LOOP": {
+              "block": {
+                "type": "robo_write_high",
+                "id": "b_1",
+                "fields": {
+                  "PIN": "13"
+                },
+                "next": {
+                  "block": {
+                    "type": "arduino_delay",
+                    "id": "b_2",
+                    "inputs": {
+                      "DELAY_TIME": {
+                        "block": {
+                          "type": "math_number",
+                          "id": "b_2n",
+                          "fields": {
+                            "NUM": 1000
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "robo_write_low",
+                        "id": "b_3",
+                        "fields": {
+                          "PIN": "13"
+                        },
+                        "next": {
+                          "block": {
+                            "type": "arduino_delay",
+                            "id": "b_4",
+                            "inputs": {
+                              "DELAY_TIME": {
+                                "block": {
+                                  "type": "math_number",
+                                  "id": "b_4n",
+                                  "fields": {
+                                    "NUM": 1000
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

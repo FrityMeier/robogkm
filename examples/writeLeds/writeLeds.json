@@ -1,0 +1,112 @@
+{
+  "title": "LED-Leiste (alle)",
+  "description": "Eine LED-Leiste an Pin 13. Alle 5 LEDs auf einmal setzen.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "wls_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "LOOP": {
+              "block": {
+                "type": "robo_write_leds",
+                "id": "wls_1",
+                "fields": {
+                  "PIN": "13",
+                  "C0": "RED",
+                  "C1": "RED",
+                  "C2": "RED",
+                  "C3": "RED",
+                  "C4": "RED"
+                },
+                "next": {
+                  "block": {
+                    "type": "arduino_delay",
+                    "id": "wls_1t",
+                    "inputs": {
+                      "DELAY_TIME": {
+                        "block": {
+                          "type": "math_number",
+                          "id": "wls_1tn",
+                          "fields": {
+                            "NUM": 1000
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "robo_write_leds",
+                        "id": "wls_2",
+                        "fields": {
+                          "PIN": "13",
+                          "C0": "GREEN",
+                          "C1": "BLUE",
+                          "C2": "GREEN",
+                          "C3": "BLUE",
+                          "C4": "GREEN"
+                        },
+                        "next": {
+                          "block": {
+                            "type": "arduino_delay",
+                            "id": "wls_2t",
+                            "inputs": {
+                              "DELAY_TIME": {
+                                "block": {
+                                  "type": "math_number",
+                                  "id": "wls_2tn",
+                                  "fields": {
+                                    "NUM": 1000
+                                  }
+                                }
+                              }
+                            },
+                            "next": {
+                              "block": {
+                                "type": "robo_write_leds",
+                                "id": "wls_3",
+                                "fields": {
+                                  "PIN": "13",
+                                  "C0": "BLACK",
+                                  "C1": "BLACK",
+                                  "C2": "YELLOW",
+                                  "C3": "BLACK",
+                                  "C4": "BLACK"
+                                },
+                                "next": {
+                                  "block": {
+                                    "type": "arduino_delay",
+                                    "id": "wls_3t",
+                                    "inputs": {
+                                      "DELAY_TIME": {
+                                        "block": {
+                                          "type": "math_number",
+                                          "id": "wls_3tn",
+                                          "fields": {
+                                            "NUM": 1000
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <Servo.h>
-#include "SparkFunLSM6DS3.h"
 #define repeat(n) for(uint16_t count_intern=0; count_intern< (n); count_intern++)
 #define repeatMillis(ms) for(uint32_t ms_intern = millis(); millis() < ms_intern+(ms);)
 #define readA analogRead
@@ -10,19 +9,17 @@
 //##################################################################################################
 //# Temperatur
 //##################################################################################################
-#include "Seeed_MCP9808.h"
-MCP9808  sensor;
+#include "Adafruit_SHT31.h"
+Adafruit_SHT31 sht31 = Adafruit_SHT31();
 boolean tempIsInit = false;
 
 float readTemp(){
 	if( ! tempIsInit ){
-		sensor.init();
+		sht31.begin(0x44);
 		tempIsInit = true;
 		delay(100);
 	}
-	float temp = 0;
-	sensor.get_temp(&temp);
-	return temp;
+	return sht31.readTemperature();
 }
 
 
@@ -350,7 +347,7 @@ int _oldUsVal[] = {
 
 // jetzt di Funktion
 int readUltraSonic(int pin){
-  
+  /*
   // schaue nach, ob der pin schon mal benutzt wurde
   int pin_number = -1;
   for(int n = 0; n < 6; n++){
@@ -381,7 +378,7 @@ int readUltraSonic(int pin){
   if(millisAgo < MILLISMINDIFF){
     return _oldUsVal[pin_number];
   }
-
+  */
   // die letzte Messung liegt also schon ein bisschen zurueck
   // wir muessen neu messen
   long duration;
@@ -404,9 +401,9 @@ int readUltraSonic(int pin){
   mm = duration / 6; //microsecondsToCentimeters(duration);
   if(mm <= 0) mm = 9999;
   // merke dir den Wert ...
-  _oldUsVal[pin_number] = mm;
+  //_oldUsVal[pin_number] = mm;
   // ... und die Zeit, zu der gemessen wurde
-  _lastMillis[pin_number] = millis();
+  //_lastMillis[pin_number] = millis();
   return mm;
 }
 
@@ -462,38 +459,34 @@ void writeLow(int port){
 
 //######################################################################################
 //# gyro
-//#include "SparkFunLSM6DS3.h"
+#include "basicMPU6050.h"
 
-LSM6DS3 myIMU( I2C_MODE, 0x6A );  //I2C device address 0x6A
+//
+basicMPU6050<> imu;
+//LSM6DS3 myIMU( I2C_MODE, 0x6A );  //I2C device address 0x6A
 boolean gyro_wurde_gestartet = false;
 
 
 void gyro_begin(){
   if( !gyro_wurde_gestartet ){
-    if( myIMU.begin() != 0 ){
-        Serial.println(F("gyro Device error"));
-        delay(1000);
-    }
-	gyro_wurde_gestartet = true;
+		imu.setup();
+		gyro_wurde_gestartet = true;
   }
 }
 
 
 void gyroTurn(int winkel){
   gyro_begin();
-  long ziel = (-1) * (long)winkel * 100;
-  Serial.println(ziel);
-  long summe = 0;
+  double ziel = (-1) * (double)winkel;
+  double summe = 0;
   if(winkel > 0){
 	  while(summe > ziel){	// rechts
-		summe += (long)myIMU.readFloatGyroZ();
-		Serial.println(summe);
+		summe += (double)imu.gz();//myIMU.readFloatGyroZ();
 		delay(10);
-		
 	  }
   }else{
 	  while(summe < ziel){	// links
-		summe += (long)myIMU.readFloatGyroZ();
+		summe += (double)imu.gz();//myIMU.readFloatGyroZ();
 		delay(10);		
 	  }
   }
@@ -503,23 +496,30 @@ void gyroTurn(int winkel){
 
 void gyroRight(){
   gyro_begin();
-  long summe = 0;
-  //driveRight();
-  while(summe > -9000){
-    summe += (long)myIMU.readFloatGyroZ();
+  double ziel = -90.0;//(double)winkel;
+  double summe = 0;
+  while(summe > ziel){
+    summe += (double)imu.gz();
     delay(10);
-    
+	Serial.println(summe);
   }
 }
 
 void gyroLeft(){
   gyro_begin();
-  long summe = 0;
-  //driveLeft();
-  while(summe < 9000){
-    summe += (long)myIMU.readFloatGyroZ();
+  double ziel = 90.0;//(double)winkel;
+  double summe = 0;
+  while(summe < ziel){
+    summe += (double)imu.gz();
     delay(10);
+	
   }
+}
+
+bool gyroSchraeg(){
+	gyro_begin();
+	double val = sqrt(imu.ax()*imu.ax()+imu.ay()*imu.ay());
+	return (int)(val*100);
 }
 
 // ##################################################################################################
@@ -676,177 +676,6 @@ int readLight(char c){
     }
   }
   return 8888;
-}
-
-
-
-// #######################################
-// GREEN-Sensor
-unsigned long _readGreen_lastMillis = 0;
-unsigned long _readGreen_millisLeft = 0;
-unsigned long _readGreen_millisRight = 0;
-
-Adafruit_NeoPixel pixelGreen;
-boolean _pixelGreenStarted = false;
-
-void writeLedGreensensor(int pin, int color)
-{
-	if( _pixelGreenStarted == false )
-	{
-		pixelGreen = Adafruit_NeoPixel(1, pin);
-		pixelGreen.begin();
-		_pixelGreenStarted = true;
-	}
-	int red = 0;
-	int blue = 0;
-	int green = 0;
-	if( (color & 1)>0 ){  red = 255; }else{ red   = 0; }
-	if( (color & 2)>0 ){green = 255; }else{ green = 0; }
-	if( (color & 4)>0 ){ blue = 255; }else{ blue  = 0; }
-	if(color >= 0) pixelGreen.setPixelColor(0, pixelGreen.Color(red, green, blue));
-	pixelGreen.show(); // This sends the updated pixel color to the hardware.
-}
-
-int readSensor(int analogPin)
-{ 
-  int v[] = {0,0,0,0,0,0,0,0,0};
-  for(int n=0; n<9; n++)
-  {
-    v[n] = analogRead(analogPin);
-    delayMicroseconds(100);
-    //Serial.print(v);
-    //Serial.print(",");
-  }
-  int tempv;
-  for(int i=0; i<10; i++)
-  {
-	for(int n=1; n<9; n++)
-	{
-	  if( v[n] < v[n-1] )
-	  {
-		tempv = v[n];
-		v[n] = v[n-1];
-		v[n-1] = tempv;
-	  }
-	}
-  }
-  //for(int n=0; n<9; n++){
-  //Serial.print(v[n]);
-  //Serial.print(";");
-  //}
-  //Serial.println();
-  //Serial.println(result);//"=");
-  return v[4];
-}
-
-int readGreen(int A_links, int A_rechts, int neoPixelPin){
-  boolean DEBUG = false;
-  boolean DEBUG_RIGHT = false;
-  boolean DEBUG_LEFT  = false;
-  
-  writeLedGreensensor(neoPixelPin, RED);
-  delay(2);
-  int rl = readSensor(A_links);
-  int rr = readSensor(A_rechts);
-  //if( DEBUG_RIGHT ){ print("rr="); print(rr); }
-  //if( DEBUG_LEFT ){ print("rl="); print(rl); }
-  //if(DEBUG) delay(1000); 
-  
-  writeLedGreensensor(neoPixelPin, GREEN);
-  delay(2);
-  int gl = readSensor(A_links);
-  int gr = readSensor(A_rechts);
-  //if( DEBUG_RIGHT ){ print(" gr="); print(gr); }
-  //if( DEBUG_LEFT ) { print(" gl="); print(gl); }
-  //if(DEBUG) delay(1000);
-  
-  //setLedRefr(0,255,255,255);
-  //writeLedGreensensor(neoPixelPin ,BLACK);
-  //delay(2);
-  //int bl = readSensor(A_links);
-  //int br = readSensor(A_rechts);
-  //if( DEBUG_RIGHT ) {   print(" br="); print(br); }
-  //if( DEBUG_LEFT ) {   print(" bl="); print(bl); }
-  //if(DEBUG) delay(1000);
-  
-  writeLedGreensensor(neoPixelPin, WHITE);
-  delay(2);
-  int wl = readSensor(A_links);
-  int wr = readSensor(A_rechts);
-  //if( DEBUG_RIGHT ) {   print(" wr="); print(wr); }
-  //if( DEBUG_LEFT ) {   print(" wl="); print(wl); }
-  //if(DEBUG) delay(1000);
-
-
-  unsigned long millisDiff = (millis() - _readGreen_lastMillis + 2);
-  _readGreen_lastMillis = millis();
-  
-  _readGreen_millisLeft  > millisDiff ? _readGreen_millisLeft  -= millisDiff : _readGreen_millisLeft  = 0;
-  _readGreen_millisRight > millisDiff ? _readGreen_millisRight -= millisDiff : _readGreen_millisRight = 0;
-
-  int resl = ( (abs((float)gl)/40.0) / (abs((float)rl)/60.0) * 100.0 - 100.0);
-  // wenn es sehr dunkel ist, dann wird was abgezogen
-  if(wl < 70){ 
-	resl = resl - 70 + wl;
-  } else if (wl > 150){
-	resl = resl - (wl + 150)/2;
-  }
-
-  
-  if( resl > 30)
-    _readGreen_millisLeft  = min(_readGreen_millisLeft+200+(resl-30)*2, 3000);
-
-  int resr = ( (((float)gr)/40.0) / (((float)rr)/60.0) * 100.0 - 100.0);
-  // wenn es sehr dunkel ist, dann wird was abgezogen
-  if(wr < 70){ 
-	resr = resr - 70 + wr;
-  } else if (wr > 150){
-	resr = resr - (wr + 150)/2;
-  }
-  
-  if( resr > 30)
-    _readGreen_millisRight = min(_readGreen_millisRight+200+(resr-30)*2, 3000);
-  
-  
-  //if( DEBUG_RIGHT) { print(" r>"); print(resr); }
-  //if( DEBUG_LEFT)  { print(" l>"); print(resl); }
-  
-    //Serial.print("=");
-    //Serial.print(resr _readGreen_millisLeft );
-  if( DEBUG || DEBUG_LEFT || DEBUG_RIGHT){
-	  delay(1000);
-		Serial.println();
-  }
-  
-  if( _readGreen_millisLeft == 0 && _readGreen_millisRight == 0 ){
-    return 0; // weder links noch rechts
-  }else if( _readGreen_millisLeft > 0 && _readGreen_millisRight > 0 ){
-    return 2;
-  }else if( _readGreen_millisLeft > _readGreen_millisRight){
-    return 1;
-  }else{
-    return -1;
-  }
-}
-
-int readRed(int A_links, int neoPixelPin, int debug = 0){
-  writeLedGreensensor(neoPixelPin, RED);
-  delay(2);
-  int rl = readSensor(A_links);
-  //Serial.print(rl);
-  //Serial.print("\t");
-  writeLedGreensensor(neoPixelPin, GREEN);
-  delay(2);
-  int gl = readSensor(A_links);
-  //Serial.print(rl);
-  //Serial.print("\t"); 
-  writeLedGreensensor(neoPixelPin, WHITE);
-  
-  if(debug > 0){
-	//Serial.println( (abs((float)rl)/60.0) / (abs((float)gl)/40.0) * 100.0 - 100.0);
-    //printNewLine();
-  }
-  return ( (abs((float)rl)/60.0) / (abs((float)gl)/40.0) * 100.0 - 100.0);
 }
 
 

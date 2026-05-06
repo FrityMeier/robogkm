@@ -1,0 +1,108 @@
+{
+  "title": "Seriell senden",
+  "description": "Sendet Daten an den PC ueber die serielle Schnittstelle.",
+  "workspace": {
+    "variables": [
+      {
+        "name": "n",
+        "id": "sr_n_id"
+      }
+    ],
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "sr_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "LOOP": {
+              "block": {
+                "type": "robo_serial_print",
+                "id": "sr_p1",
+                "inputs": {
+                  "VALUE": {
+                    "block": {
+                      "type": "text",
+                      "id": "sr_t1",
+                      "fields": {
+                        "TEXT": "hallo "
+                      }
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "robo_serial_print",
+                    "id": "sr_p2",
+                    "inputs": {
+                      "VALUE": {
+                        "block": {
+                          "type": "variables_get",
+                          "id": "sr_vg",
+                          "fields": {
+                            "VAR": {
+                              "id": "sr_n_id",
+                              "name": "n"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "math_change",
+                        "id": "sr_ch",
+                        "fields": {
+                          "VAR": {
+                            "id": "sr_n_id",
+                            "name": "n"
+                          }
+                        },
+                        "inputs": {
+                          "DELTA": {
+                            "block": {
+                              "type": "math_number",
+                              "id": "sr_dn",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          }
+                        },
+                        "next": {
+                          "block": {
+                            "type": "robo_serial_newline",
+                            "id": "sr_nl",
+                            "next": {
+                              "block": {
+                                "type": "arduino_delay",
+                                "id": "sr_t",
+                                "inputs": {
+                                  "DELAY_TIME": {
+                                    "block": {
+                                      "type": "math_number",
+                                      "id": "sr_tn",
+                                      "fields": {
+                                        "NUM": 1000
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

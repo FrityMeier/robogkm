@@ -1,0 +1,191 @@
+{
+  "title": "Motoren ansteuern",
+  "description": "Schaltet die Motoren am Motortreiber an und aus. 2 Motoren anschliessen.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "dr_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "LOOP": {
+              "block": {
+                "type": "robo_drive",
+                "id": "dr_1",
+                "inputs": {
+                  "LEFT": {
+                    "block": {
+                      "type": "math_number",
+                      "id": "dr_1l",
+                      "fields": {
+                        "NUM": 100
+                      }
+                    }
+                  },
+                  "RIGHT": {
+                    "block": {
+                      "type": "math_number",
+                      "id": "dr_1r",
+                      "fields": {
+                        "NUM": 0
+                      }
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "arduino_delay",
+                    "id": "dr_1t",
+                    "inputs": {
+                      "DELAY_TIME": {
+                        "block": {
+                          "type": "math_number",
+                          "id": "dr_1tn",
+                          "fields": {
+                            "NUM": 1000
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "robo_drive",
+                        "id": "dr_2",
+                        "inputs": {
+                          "LEFT": {
+                            "block": {
+                              "type": "math_number",
+                              "id": "dr_2l",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
+                          },
+                          "RIGHT": {
+                            "block": {
+                              "type": "math_number",
+                              "id": "dr_2r",
+                              "fields": {
+                                "NUM": 100
+                              }
+                            }
+                          }
+                        },
+                        "next": {
+                          "block": {
+                            "type": "arduino_delay",
+                            "id": "dr_2t",
+                            "inputs": {
+                              "DELAY_TIME": {
+                                "block": {
+                                  "type": "math_number",
+                                  "id": "dr_2tn",
+                                  "fields": {
+                                    "NUM": 1000
+                                  }
+                                }
+                              }
+                            },
+                            "next": {
+                              "block": {
+                                "type": "robo_drive",
+                                "id": "dr_3",
+                                "inputs": {
+                                  "LEFT": {
+                                    "block": {
+                                      "type": "math_number",
+                                      "id": "dr_3l",
+                                      "fields": {
+                                        "NUM": 0
+                                      }
+                                    }
+                                  },
+                                  "RIGHT": {
+                                    "block": {
+                                      "type": "math_number",
+                                      "id": "dr_3r",
+                                      "fields": {
+                                        "NUM": 0
+                                      }
+                                    }
+                                  }
+                                },
+                                "next": {
+                                  "block": {
+                                    "type": "arduino_delay",
+                                    "id": "dr_3t",
+                                    "inputs": {
+                                      "DELAY_TIME": {
+                                        "block": {
+                                          "type": "math_number",
+                                          "id": "dr_3tn",
+                                          "fields": {
+                                            "NUM": 1000
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "next": {
+                                      "block": {
+                                        "type": "robo_drive",
+                                        "id": "dr_4",
+                                        "inputs": {
+                                          "LEFT": {
+                                            "block": {
+                                              "type": "math_number",
+                                              "id": "dr_4l",
+                                              "fields": {
+                                                "NUM": -100
+                                              }
+                                            }
+                                          },
+                                          "RIGHT": {
+                                            "block": {
+                                              "type": "math_number",
+                                              "id": "dr_4r",
+                                              "fields": {
+                                                "NUM": -100
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "next": {
+                                          "block": {
+                                            "type": "arduino_delay",
+                                            "id": "dr_4t",
+                                            "inputs": {
+                                              "DELAY_TIME": {
+                                                "block": {
+                                                  "type": "math_number",
+                                                  "id": "dr_4tn",
+                                                  "fields": {
+                                                    "NUM": 1000
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

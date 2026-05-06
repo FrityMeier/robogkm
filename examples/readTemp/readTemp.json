@@ -1,0 +1,91 @@
+{
+  "title": "Temperatur lesen",
+  "description": "Temperatursensor (LCD-Anschluss). Gibt Temperatur ueber Serial aus.",
+  "workspace": {
+    "variables": [
+      {
+        "name": "temp",
+        "id": "rt_t_id"
+      }
+    ],
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "rt_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "SETUP": {
+              "block": {
+                "type": "arduino_serial_begin",
+                "id": "rt_sb",
+                "fields": {
+                  "BAUD": "9600"
+                }
+              }
+            },
+            "LOOP": {
+              "block": {
+                "type": "variables_set",
+                "id": "rt_vs",
+                "fields": {
+                  "VAR": {
+                    "id": "rt_t_id",
+                    "name": "temp"
+                  }
+                },
+                "inputs": {
+                  "VALUE": {
+                    "block": {
+                      "type": "robo_read_temp",
+                      "id": "rt_rt"
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "arduino_serial_println",
+                    "id": "rt_sp",
+                    "inputs": {
+                      "VALUE": {
+                        "block": {
+                          "type": "variables_get",
+                          "id": "rt_vg",
+                          "fields": {
+                            "VAR": {
+                              "id": "rt_t_id",
+                              "name": "temp"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "arduino_delay",
+                        "id": "rt_t",
+                        "inputs": {
+                          "DELAY_TIME": {
+                            "block": {
+                              "type": "math_number",
+                              "id": "rt_tn",
+                              "fields": {
+                                "NUM": 1000
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

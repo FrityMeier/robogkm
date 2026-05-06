@@ -1,0 +1,131 @@
+{
+  "title": "LED-Leiste (einzeln)",
+  "description": "Eine LED-Leiste an Pin 13. Einzelne LEDs in Farbe schalten.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "wl_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "LOOP": {
+              "block": {
+                "type": "robo_write_led",
+                "id": "wl_1",
+                "fields": {
+                  "PIN": "13",
+                  "INDEX": 0,
+                  "COLOR": "RED"
+                },
+                "next": {
+                  "block": {
+                    "type": "arduino_delay",
+                    "id": "wl_1t",
+                    "inputs": {
+                      "DELAY_TIME": {
+                        "block": {
+                          "type": "math_number",
+                          "id": "wl_1tn",
+                          "fields": {
+                            "NUM": 1000
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "robo_write_led",
+                        "id": "wl_2",
+                        "fields": {
+                          "PIN": "13",
+                          "INDEX": 2,
+                          "COLOR": "GREEN"
+                        },
+                        "next": {
+                          "block": {
+                            "type": "arduino_delay",
+                            "id": "wl_2t",
+                            "inputs": {
+                              "DELAY_TIME": {
+                                "block": {
+                                  "type": "math_number",
+                                  "id": "wl_2tn",
+                                  "fields": {
+                                    "NUM": 1000
+                                  }
+                                }
+                              }
+                            },
+                            "next": {
+                              "block": {
+                                "type": "robo_write_led",
+                                "id": "wl_3",
+                                "fields": {
+                                  "PIN": "13",
+                                  "INDEX": 0,
+                                  "COLOR": "BLACK"
+                                },
+                                "next": {
+                                  "block": {
+                                    "type": "arduino_delay",
+                                    "id": "wl_3t",
+                                    "inputs": {
+                                      "DELAY_TIME": {
+                                        "block": {
+                                          "type": "math_number",
+                                          "id": "wl_3tn",
+                                          "fields": {
+                                            "NUM": 1000
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "next": {
+                                      "block": {
+                                        "type": "robo_write_led",
+                                        "id": "wl_4",
+                                        "fields": {
+                                          "PIN": "13",
+                                          "INDEX": 2,
+                                          "COLOR": "BLACK"
+                                        },
+                                        "next": {
+                                          "block": {
+                                            "type": "arduino_delay",
+                                            "id": "wl_4t",
+                                            "inputs": {
+                                              "DELAY_TIME": {
+                                                "block": {
+                                                  "type": "math_number",
+                                                  "id": "wl_4tn",
+                                                  "fields": {
+                                                    "NUM": 1000
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

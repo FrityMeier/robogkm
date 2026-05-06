@@ -1,0 +1,77 @@
+{
+  "title": "Taster lesen",
+  "description": "Taster an Pin A1 liest den Zustand und schaltet die eingebaute LED.",
+  "workspace": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "arduino_main",
+          "id": "rb_m",
+          "x": 50,
+          "y": 50,
+          "inputs": {
+            "LOOP": {
+              "block": {
+                "type": "controls_if",
+                "id": "rb_if",
+                "extraState": {
+                  "hasElse": true
+                },
+                "inputs": {
+                  "IF0": {
+                    "block": {
+                      "type": "logic_compare",
+                      "id": "rb_cmp",
+                      "fields": {
+                        "OP": "EQ"
+                      },
+                      "inputs": {
+                        "A": {
+                          "block": {
+                            "type": "robo_read_button",
+                            "id": "rb_btn",
+                            "fields": {
+                              "PIN": "A1"
+                            }
+                          }
+                        },
+                        "B": {
+                          "block": {
+                            "type": "arduino_high_low",
+                            "id": "rb_hl",
+                            "fields": {
+                              "VALUE": "HIGH"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "DO0": {
+                    "block": {
+                      "type": "robo_write_high",
+                      "id": "rb_wh",
+                      "fields": {
+                        "PIN": "13"
+                      }
+                    }
+                  },
+                  "ELSE": {
+                    "block": {
+                      "type": "robo_write_low",
+                      "id": "rb_wl",
+                      "fields": {
+                        "PIN": "13"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

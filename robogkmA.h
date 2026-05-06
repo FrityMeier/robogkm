@@ -13,13 +13,13 @@
 Adafruit_SHT31 sht31 = Adafruit_SHT31();
 boolean tempIsInit = false;
 
-float readTemp(){
+int readTemp(){
 	if( ! tempIsInit ){
 		sht31.begin(0x44);
 		tempIsInit = true;
 		delay(100);
 	}
-	return sht31.readTemperature();
+	return (int)sht31.readTemperature();
 }
 
 

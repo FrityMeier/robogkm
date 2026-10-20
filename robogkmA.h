@@ -618,6 +618,107 @@ int isBright(char c){
   return -1;
 }
 
+//##################################################################################################
+//# ToF-Abstandssensor VL53L0X (Laser, 3 cm .. ca. 1,2 m, Ergebnis in mm)
+//#
+//#   addTofSensor('v', 200);          ein Sensor, Schwelle 200 mm fuer isNear('v')
+//#   addTofSensor('l', 4, 150);       mehrere Sensoren: jeder braucht einen eigenen XSHUT-Pin (hier 4)
+//#   readTof('v')                     Abstand in mm, 9999 = nichts im Messbereich oder Fehler
+//#   isNear('v')                      wie beim Ultraschall: true, wenn naeher als die Schwelle
+//#
+//# Alle VL53L0X haben am Anfang dieselbe I2C-Adresse (0x29). Bei mehreren Sensoren schaltet robogkm
+//# beim ersten Lesen alle ueber XSHUT aus, dann einen nach dem anderen ein und gibt jedem eine eigene
+//# Adresse (0x30, 0x31, ...). Ein Sensor ohne XSHUT-Pin (-1) geht nur, wenn er der einzige ist.
+//# Treiber: VL53L0X_gkm.h/.cpp (Pololu vl53l0x-arduino, MIT-Lizenz, siehe VL53L0X_LICENSE.txt)
+//##################################################################################################
+#include "VL53L0X_gkm.h"
+
+// Der ToF-Code kommt nur ins Programm, wenn es addTofSensor() aufruft (sonst kostet er 4 KB):
+// die Sensoren entstehen erst beim ersten Gebrauch, und isNear() fragt den ToF ueber einen Zeiger,
+// den erst addTofSensor() setzt.
+const int __TOF_MAX = 4;
+VL53L0X& __tof(int n){
+  static VL53L0X sensoren[__TOF_MAX];
+  return sensoren[n];
+}
+int __tofIsNear(char c);
+int (*__tofIsNearZeiger)(char) = 0;
+char __tofChars[__TOF_MAX] = {0, 0, 0, 0};
+int __tofXshut[__TOF_MAX] = {-1, -1, -1, -1};
+int __tofSchwellen[__TOF_MAX] = {200, 200, 200, 200};
+bool __tofOk[__TOF_MAX] = {false, false, false, false};
+int __tofAnzahl = 0;
+bool __tofGestartet = false;
+
+void addTofSensor(char c, int xshutPin, int schwelle){
+  if( __tofAnzahl >= __TOF_MAX ) return;
+  __tofChars[__tofAnzahl] = c;
+  __tofXshut[__tofAnzahl] = xshutPin;
+  __tofSchwellen[__tofAnzahl] = schwelle;
+  if( xshutPin >= 0 ){            // gleich ausschalten, damit er beim Start nicht stoert
+    pinMode(xshutPin, OUTPUT);
+    digitalWrite(xshutPin, LOW);
+  }
+  __tofAnzahl++;
+  __tofGestartet = false;         // beim naechsten Lesen alle (neu) starten
+  __tofIsNearZeiger = __tofIsNear;
+}
+
+void addTofSensor(char c, int schwelle){
+  addTofSensor(c, -1, schwelle);
+}
+
+void __tofStarten(){
+  Wire.begin();
+  for(int n=0; n<__tofAnzahl; n++){     // erst alle mit XSHUT aus
+    if( __tofXshut[n] >= 0 ){ pinMode(__tofXshut[n], OUTPUT); digitalWrite(__tofXshut[n], LOW); }
+  }
+  delay(10);
+  for(int n=0; n<__tofAnzahl; n++){     // dann einen nach dem anderen ein, eigene Adresse
+    if( __tofXshut[n] < 0 ) continue;
+    pinMode(__tofXshut[n], INPUT);      // XSHUT loslassen: die Platine zieht ihn auf high
+    delay(10);
+    __tof(n).setTimeout(100);
+    __tofOk[n] = __tof(n).init();
+    if( __tofOk[n] ){
+      __tof(n).setAddress(0x30 + n);
+      __tof(n).startContinuous();
+    }
+  }
+  for(int n=0; n<__tofAnzahl; n++){     // zuletzt der ohne XSHUT (Adresse 0x29 bleibt)
+    if( __tofXshut[n] >= 0 ) continue;
+    __tof(n).setTimeout(100);
+    __tofOk[n] = __tof(n).init();
+    if( __tofOk[n] ) __tof(n).startContinuous();
+  }
+  __tofGestartet = true;
+}
+
+int __tofNummer(char c){
+  for(int n=0; n<__tofAnzahl; n++){
+    if( __tofChars[n] == c ) return n;
+  }
+  return -1;
+}
+
+int readTof(char c){
+  int n = __tofNummer(c);
+  if( n < 0 ) return 8888;              // so heisst der Sensor nicht (wie readUs)
+  if( !__tofGestartet ) __tofStarten();
+  if( !__tofOk[n] ) return 9999;
+  int mm = __tof(n).readRangeContinuousMillimeters();
+  if( __tof(n).timeoutOccurred() || mm >= 2000 ) return 9999;   // 8190 = nichts im Messbereich
+  return mm;
+}
+
+// fuer isNear(): -1 = kein ToF-Sensor mit diesem Namen
+int __tofIsNear(char c){
+  int n = __tofNummer(c);
+  if( n < 0 ) return -1;
+  return readTof(c) < __tofSchwellen[n];
+}
+
+
 void addUsSensor(char c, int pin, int schwelle){
   // suche den ersten freien Slot
   int n;
@@ -649,6 +750,7 @@ int isNear(char c){
 	  }
     }
   }
+  if( __tofIsNearZeiger ) return __tofIsNearZeiger(c);   // kein Ultraschall-Sensor so: vielleicht ein ToF
   return -1;
 }
 

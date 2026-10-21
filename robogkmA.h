@@ -465,27 +465,55 @@ void writeLow(int port){
 basicMPU6050<> imu;
 //LSM6DS3 myIMU( I2C_MODE, 0x6A );  //I2C device address 0x6A
 boolean gyro_wurde_gestartet = false;
+boolean gyro_ok = false;        // hat beim Start ein Gyro geantwortet?
 
-
-void gyro_begin(){
-  if( !gyro_wurde_gestartet ){
-		imu.setup();
-		gyro_wurde_gestartet = true;
+// Gyro fehlt (oder I2C gestoert): LED-Ring dreimal rot blinken und - wenn Serial laeuft - melden.
+void __gyroFehlt(){
+#if defined(UCSR0B)
+  if( UCSR0B & (1 << TXEN0) )   // nur wenn das Programm Serial.begin() aufgerufen hat
+#endif
+    Serial.println(F("Gyro nicht gefunden - SDA an A4, SCL an A5, VCC und GND pruefen"));
+  repeat(3){
+    writeLeds(13, 1, 1, 1, 1, 1, 1, 1, 1);
+    delay(150);
+    writeLeds(13, 0, 0, 0, 0, 0, 0, 0, 0);
+    delay(150);
   }
+}
+
+// Startet den Gyro (MPU-6050 an 0x68). true = Gyro gefunden.
+// Frueher hing das Programm hier fuer immer, wenn der Gyro fehlte oder keinen Strom hatte
+// (die I2C-Leitungen bleiben dann unten). Jetzt: Zeitlimit fuer I2C, Meldung, false.
+bool gyro_begin(){
+  if( gyro_wurde_gestartet ) return gyro_ok;
+  gyro_wurde_gestartet = true;
+  Wire.begin();
+#if defined(ARDUINO_ARCH_AVR) || defined(WIRE_HAS_TIMEOUT)   // AVR-Kern ab 1.8.3 kann das, meldet es aber nicht
+  Wire.setWireTimeout(25000, true);   // 25 ms, danach I2C zuruecksetzen statt haengen
+#endif
+  Wire.beginTransmission(0x68);
+  gyro_ok = (Wire.endTransmission() == 0);
+  if( gyro_ok ){
+    imu.setup();
+  }else{
+    __gyroFehlt();
+  }
+  return gyro_ok;
 }
 
 
 void gyroTurn(int winkel){
-  gyro_begin();
+  if( !gyro_begin() ){ __gyroFehlt(); return; }   // ohne Gyro nicht ewig drehen
   double ziel = (-1) * (double)winkel;
   double summe = 0;
+  unsigned long start = millis();       // nach 10 s aufhoeren (haengt fest, Gyro ausgefallen)
   if(winkel > 0){
-	  while(summe > ziel){	// rechts
+	  while(summe > ziel && millis() - start < 10000){	// rechts
 		summe += (double)imu.gz();//myIMU.readFloatGyroZ();
 		delay(10);
 	  }
   }else{
-	  while(summe < ziel){	// links
+	  while(summe < ziel && millis() - start < 10000){	// links
 		summe += (double)imu.gz();//myIMU.readFloatGyroZ();
 		delay(10);		
 	  }
@@ -495,7 +523,7 @@ void gyroTurn(int winkel){
 
 
 void gyroRight(){
-  gyro_begin();
+  if( !gyro_begin() ){ __gyroFehlt(); return; }
   double ziel = -90.0;//(double)winkel;
   double summe = 0;
   while(summe > ziel){
@@ -506,7 +534,7 @@ void gyroRight(){
 }
 
 void gyroLeft(){
-  gyro_begin();
+  if( !gyro_begin() ){ __gyroFehlt(); return; }
   double ziel = 90.0;//(double)winkel;
   double summe = 0;
   while(summe < ziel){
@@ -515,6 +543,7 @@ void gyroLeft(){
 	
   }
 }
+
 
 bool gyroSchraeg(){
 	gyro_begin();

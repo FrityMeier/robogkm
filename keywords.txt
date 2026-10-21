@@ -39,6 +39,7 @@ isNear	KEYWORD2
 addUsSensor	KEYWORD2
 addTofSensor	KEYWORD2
 readTof	KEYWORD2
+gyro_begin	KEYWORD2
 isDark	KEYWORD2
 addLightSensor	KEYWORD2
 readSensor	KEYWORD2

@@ -551,6 +551,132 @@ bool gyroSchraeg(){
 	return (int)(val*100);
 }
 
+//##################################################################################################
+//# Lagesensor BNO055 (Bosch): rechnet die Lage selbst aus und liefert fertige Winkel in Grad
+//#
+//#   bno_begin();            starten (IMU: Gyro + Beschleunigung, Kurs relativ zum Start, Motoren stoeren nicht)
+//#   bno_begin(true);        mit Kompass (NDOF): Kurs absolut nach Norden, aber Motoren/Eisen stoeren
+//#   readHeading()           Kurs 0..359 Grad (rechts herum mehr)
+//#   readPitch()             Neigung vorn/hinten in Grad (Rampe), readRoll() seitlich
+//#   bnoTurn(90);            warten, bis sich der Roboter um 90 Grad gedreht hat (+ rechts, - links)
+//#   readBnoCalib()          Kalibrierung des Gyros 0..3 (3 = fertig; nach dem Start kurz stillhalten)
+//#
+//# Anschluss wie der Gyro: SDA an A4, SCL an A5, VIN 5 V, GND (Grove-Buchse "A5 A4").
+//# I2C-Adresse 0x28 (oder 0x29, wenn ADR auf high liegt) - wird selbst gesucht.
+//# Ohne Sensor geben die read-Funktionen 9999 zurueck.
+//##################################################################################################
+byte __bnoAdr = 0;                 // 0 = noch nicht gestartet, 1 = nicht gefunden, sonst Adresse
+
+void __bnoSchreibe(byte reg, byte wert){
+  Wire.beginTransmission(__bnoAdr);
+  Wire.write(reg);
+  Wire.write(wert);
+  Wire.endTransmission();
+}
+
+byte __bnoLies(byte adr, byte reg){
+  Wire.beginTransmission(adr);
+  Wire.write(reg);
+  if( Wire.endTransmission() != 0 ) return 0;
+  if( Wire.requestFrom(adr, (byte)1) != 1 ) return 0;
+  return Wire.read();
+}
+
+int __bnoLies16(byte reg){         // zwei Bytes (low, high) als vorzeichenbehaftete Zahl
+  Wire.beginTransmission(__bnoAdr);
+  Wire.write(reg);
+  if( Wire.endTransmission() != 0 ) return 32767;
+  if( Wire.requestFrom(__bnoAdr, (byte)2) != 2 ) return 32767;
+  int lo = Wire.read();
+  int hi = Wire.read();
+  return (int16_t)((hi << 8) | lo);
+}
+
+void __bnoFehlt(){
+#if defined(UCSR0B)
+  if( UCSR0B & (1 << TXEN0) )
+#endif
+    Serial.println(F("BNO055 nicht gefunden - SDA an A4, SCL an A5, VIN und GND pruefen"));
+  repeat(3){
+    writeLeds(13, 1, 1, 1, 1, 1, 1, 1, 1);
+    delay(150);
+    writeLeds(13, 0, 0, 0, 0, 0, 0, 0, 0);
+    delay(150);
+  }
+}
+
+// true = BNO055 gefunden. kompass = true: mit Magnetfeldsensor (absoluter Kurs)
+bool bno_begin(bool kompass = false){
+  if( __bnoAdr > 1 ) return true;
+  if( __bnoAdr == 1 ) return false;
+  Wire.begin();
+#if defined(ARDUINO_ARCH_AVR) || defined(WIRE_HAS_TIMEOUT)
+  Wire.setWireTimeout(25000, true);
+#endif
+  __bnoAdr = 1;
+  for( int versuch = 0; versuch < 10 && __bnoAdr == 1; versuch++ ){   // braucht nach dem Einschalten ca. 0,7 s
+    if( __bnoLies(0x28, 0x00) == 0xA0 ) __bnoAdr = 0x28;              // Register 0 = Chip-ID 0xA0
+    else if( __bnoLies(0x29, 0x00) == 0xA0 ) __bnoAdr = 0x29;
+    else delay(100);
+  }
+  if( __bnoAdr == 1 ){ __bnoFehlt(); return false; }
+  __bnoSchreibe(0x3D, 0x00);       // Betriebsart CONFIG
+  delay(25);
+  __bnoSchreibe(0x07, 0x00);       // Registerseite 0
+  __bnoSchreibe(0x3E, 0x00);       // Stromsparmodus aus
+  __bnoSchreibe(0x3B, 0x00);       // Einheiten: Grad, m/s^2, Grad Celsius
+  __bnoSchreibe(0x3D, kompass ? 0x0C : 0x08);   // NDOF bzw. IMU
+  delay(30);
+  return true;
+}
+
+int readHeading(){
+  if( !bno_begin() ) return 9999;
+  int w = __bnoLies16(0x1A);
+  if( w == 32767 ) return 9999;
+  return (w / 16) % 360;           // 16 Stufen = 1 Grad
+}
+
+int readRoll(){
+  if( !bno_begin() ) return 9999;
+  int w = __bnoLies16(0x1C);
+  return w == 32767 ? 9999 : w / 16;
+}
+
+int readPitch(){
+  if( !bno_begin() ) return 9999;
+  int w = __bnoLies16(0x1E);
+  return w == 32767 ? 9999 : w / 16;
+}
+
+// Kalibrierstatus des Gyros 0..3 (Register 0x35: Bits 5-4)
+int readBnoCalib(){
+  if( !bno_begin() ) return 0;
+  return (__bnoLies(__bnoAdr, 0x35) >> 4) & 3;
+}
+
+// Wartet, bis sich der Kurs um winkel Grad geaendert hat (+ rechts, - links), hoechstens 10 s.
+// Die Motoren setzt das Programm selbst, z. B.:  drive(60, -60); bnoTurn(90); drive(0, 0);
+void bnoTurn(int winkel){
+  if( !bno_begin() ){ __bnoFehlt(); return; }
+  int letzter = readHeading();
+  if( letzter == 9999 ) return;
+  long gedreht = 0;                // aufsummiert, damit auch 180 oder 360 Grad gehen
+  unsigned long t0 = millis();
+  while( millis() - t0 < 10000 ){
+    int jetzt = readHeading();
+    if( jetzt == 9999 ) break;
+    int d = jetzt - letzter;       // Sprung bei 0/360 ausgleichen
+    if( d > 180 ) d -= 360;
+    if( d < -180 ) d += 360;
+    gedreht += d;
+    letzter = jetzt;
+    if( winkel > 0 && gedreht >= winkel ) break;
+    if( winkel < 0 && gedreht <= winkel ) break;
+    delay(10);
+  }
+}
+
 // ##################################################################################################
 // Sensoren
 int __pins[] = {0,0,0,0,0,0,0,0};

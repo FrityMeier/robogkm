@@ -126,6 +126,6 @@ class basicMPU6050 {
     void updateBias();
 };
 
-#include "basicMPU6050.tpp"
+#include "basicMPU6050_impl.h"   // frueher basicMPU6050.tpp - die Arduino-IDE 1.8 kopiert .tpp aus src/ eines Sketches nicht mit
  
 #endif
